@@ -1,0 +1,10 @@
+#ifndef DGSHIELDPROTOTYPE_PARTITIONSHIELD_H
+#define DGSHIELDPROTOTYPE_PARTITIONSHIELD_H
+
+namespace DGShield {
+    class PartitionShield {
+
+    };
+}
+
+#endif //DGSHIELDPROTOTYPE_PARTITIONSHIELD_H
