@@ -1,4 +1,5 @@
 #include <iostream>
+#include <chrono>
 #include "ShieldGenerator.h"
 
 namespace DGShield {
@@ -51,8 +52,11 @@ namespace DGShield {
             if (rainbowShield) {
                 color = rl::WHITE;
                 if (action_allowed[0] == FALSE) color.r = 0;
+                else if (action_allowed[0] == MAYBE) color.r = 60;
                 if (action_allowed[1] == FALSE) color.g = 0;
+                else if (action_allowed[1] == MAYBE) color.g = 60;
                 if (action_allowed[2] == FALSE) color.b = 0;
+                else if (action_allowed[2] == MAYBE) color.b = 60;
             } else {
                 color = rl::GOLD;
                 if (res == TRUE) color = rl::GREEN;
@@ -87,8 +91,13 @@ namespace DGShield {
 
     void ShieldGenerator::runToCompletion() {
         if (_done) return;
-        std::cout << "RUNNING TO COMPLETION" << std::endl;
+        using namespace std::chrono;
+        std::cout << "RUNNING TO COMPLETION..." << std::endl;
+        auto start = high_resolution_clock::now();
         determineStrategyDFS(_model.initial());
+        auto stop = high_resolution_clock::now();
+        auto duration = duration_cast<milliseconds>(stop - start);
+        std::cout << "DONE in " << duration.count() << " ms" << std::endl;
         _done = true;
     }
 

@@ -9,10 +9,10 @@ namespace DGShield {
     class Simulator {
     public:
         explicit Simulator(const DGShield::Model &model, const ShieldGenerator& shield_gen) : _model(model), _shield_gen(shield_gen) {
-            restart();
+            reset();
         }
 
-        void restart();
+        void reset();
 
         state_t step(action_t action);
 

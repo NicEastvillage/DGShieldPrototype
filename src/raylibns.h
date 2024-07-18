@@ -4,7 +4,7 @@
 namespace rl {
 #include "raylib.h"
 
-    static const int TILE_SIZE = 10;
+    static const int TILE_SIZE = 12;
 }
 
 #endif //DGSHIELDPROTOTYPE_RAYLIBNS_H

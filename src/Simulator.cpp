@@ -1,7 +1,7 @@
 #include "Simulator.h"
 
 namespace DGShield {
-    void Simulator::restart() {
+    void Simulator::reset() {
         _trace = trace_t({_model.initial() });
     }
 
