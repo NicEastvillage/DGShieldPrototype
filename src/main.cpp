@@ -36,29 +36,34 @@ int main() {
 //    m.addDanger({{190, 280}, {280, 390}});
 //    m.addDanger({{500, 375}, {600, 400}});
 
-    Simulator sim(m);
     ShieldGenerator gen(m);
+    Simulator sim(m, gen);
 
     rl::InitWindow(m.width * rl::TILE_SIZE, m.height * rl::TILE_SIZE, "Dependency Graph Shield Refinement");
+
+    bool rainbowShield = false;
 
     while (!rl::WindowShouldClose())
     {
         if (rl::IsKeyPressed(rl::KEY_RIGHT)) sim.step(DGShield::action_t::FORWARD);
         if (rl::IsKeyPressed(rl::KEY_UP)) sim.step(DGShield::action_t::UP);
         if (rl::IsKeyPressed(rl::KEY_DOWN)) sim.step(DGShield::action_t::DOWN);
+
         if (rl::IsKeyPressed(rl::KEY_P)) sim.finishWithRandomMoves();
-        if (rl::IsKeyPressed(rl::KEY_O)) sim.restart();
-        if (rl::IsKeyDown(rl::KEY_L)) sim.step(DGShield::action_t(rand() % 3));
+        if (rl::IsKeyDown(rl::KEY_O)) sim.safeStepRandom();
+        if (rl::IsKeyPressed(rl::KEY_I)) sim.restart();
 
         if (rl::IsKeyPressed(rl::KEY_Q)) gen.reset();
         if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
         if (rl::IsKeyPressed(rl::KEY_E)) gen.runToCompletion();
 
+        if (rl::IsKeyPressed(rl::KEY_S)) rainbowShield = !rainbowShield;
+
         rl::BeginDrawing();
         ClearBackground(rl::RAYWHITE);
         m.render();
         sim.render();
-        gen.render();
+        gen.render(rainbowShield);
         rl::EndDrawing();
     }
 

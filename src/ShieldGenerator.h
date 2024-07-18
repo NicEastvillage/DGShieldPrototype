@@ -54,11 +54,12 @@ namespace DGShield {
         }
 
         [[nodiscard]] opt_bool hasStrategy() const {
+            opt_bool res = FALSE;
             for (int i = 0; i < std::size(action_allowed); ++i) {
                 if (action_allowed[i] == MAYBE) return MAYBE;
                 if (action_allowed[i] == TRUE) return TRUE;
             }
-            return FALSE;
+            return res;
         }
 
         [[nodiscard]] bool hasAnyDisallowed() const {
@@ -68,9 +69,10 @@ namespace DGShield {
             return false;
         }
 
+        [[nodiscard]] const shield_node_t& findSmallestContaining(state_t state) const;
         [[nodiscard]] shield_node_t& findSmallestContaining(state_t state);
 
-        void render(int height) const;
+        void render(int height, bool rainbowShield) const;
 
     public:
         irect partition;
@@ -99,9 +101,11 @@ namespace DGShield {
 
         [[nodiscard]] bool isDone() const { return _done; };
 
-        [[nodiscard]] int getShield() const;
+        [[nodiscard]] const shield_node_t& getShield() const {
+            return _root;
+        };
 
-        void render() const;
+        void render(bool rainbowShield) const;
 
     private:
         enum status_t {

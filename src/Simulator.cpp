@@ -2,7 +2,7 @@
 
 namespace DGShield {
     void Simulator::restart() {
-        _trace = trace_t({_model.initial() }, &_model);
+        _trace = trace_t({_model.initial() });
     }
 
     state_t Simulator::step(DGShield::action_t action) {
@@ -13,13 +13,30 @@ namespace DGShield {
         return dest;
     }
 
+    state_t Simulator::stepRandom() {
+        return step(action_t(rand() % 3));
+    }
+
+    state_t Simulator::safeStepRandom() {
+        if (!_shield_gen.isDone()) return stepRandom();
+        state_t current = _trace.states[_trace.states.size() - 1];
+        auto shield = _shield_gen.getShield().findSmallestContaining(current);
+        if (shield.hasStrategy() == FALSE) return stepRandom();
+        action_t action = action_t(rand() % 3);
+        while (shield.action_allowed[action] != TRUE) action = action_t(rand() % 3);
+        std::vector<state_t> destinations = _model.successors(current, action);
+        state_t dest = destinations[rand() % destinations.size()];
+        _trace.states.push_back(dest);
+        return dest;
+    }
+
     void Simulator::finishWithRandomMoves() {
         state_t current = _trace.states[_trace.states.size() - 1];
-        auto limit = 10000;
-        while (current != step(action_t(rand() % 3)) && limit-- > 0) {}
+        auto limit = 20000;
+        while (current != safeStepRandom() && limit-- > 0) {}
     }
 
     void Simulator::render() const {
-        _trace.render();
+        _trace.render(_model);
     }
 }

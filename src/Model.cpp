@@ -9,6 +9,7 @@ namespace DGShield {
         switch (action) {
             case FORWARD:
                 // One or two steps right
+                if (state.x == width - 2) return { { state.x + 1, state.y } };
                 return { { state.x + 1, state.y }, { state.x + 2, state.y } };
             case UP:
                 // One step right and up

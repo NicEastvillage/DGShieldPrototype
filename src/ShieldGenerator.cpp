@@ -17,6 +17,18 @@ namespace DGShield {
         std::copy(action_allowed, action_allowed + std::size(action_allowed), upper->action_allowed);
     }
 
+    const shield_node_t& shield_node_t::findSmallestContaining(state_t state) const {
+        assert(partition.contains(state));
+        if (!isSplit()) return *this;
+        if (isSplitAxisX()) {
+            if (state.x < middle()) return lower->findSmallestContaining(state);
+            else return upper->findSmallestContaining(state);
+        } else {
+            if (state.y < middle()) return lower->findSmallestContaining(state);
+            else return upper->findSmallestContaining(state);
+        }
+    }
+
     shield_node_t& shield_node_t::findSmallestContaining(state_t state) {
         assert(partition.contains(state));
         if (!isSplit()) return *this;
@@ -29,16 +41,24 @@ namespace DGShield {
         }
     }
 
-    void shield_node_t::render(int height) const {
+    void shield_node_t::render(int height, bool rainbowShield) const {
         if (isSplit()) {
-            lower->render(height);
-            upper->render(height);
+            lower->render(height, rainbowShield);
+            upper->render(height, rainbowShield);
         } else {
             opt_bool res = hasStrategy();
-            rl::Color color = rl::GOLD;
-            if (res == TRUE) color = rl::GREEN;
-            else if (res == FALSE) color = rl::RED;
-            else if (hasAnyDisallowed()) color = rl::ORANGE;
+            rl::Color color;
+            if (rainbowShield) {
+                color = rl::WHITE;
+                if (action_allowed[0] == FALSE) color.r = 0;
+                if (action_allowed[1] == FALSE) color.g = 0;
+                if (action_allowed[2] == FALSE) color.b = 0;
+            } else {
+                color = rl::GOLD;
+                if (res == TRUE) color = rl::GREEN;
+                else if (res == FALSE) color = rl::RED;
+            }
+
             color.a = 15;
             rl::DrawRectangle(
                     partition.min.x * rl::TILE_SIZE,
@@ -188,12 +208,8 @@ namespace DGShield {
         if (node->canSplit()) node->split();
     }
 
-    int ShieldGenerator::getShield() const {
-        return -1;
-    }
-
-    void ShieldGenerator::render() const {
-        _root.render(_model.height);
+    void ShieldGenerator::render(bool rainbowShield) const {
+        _root.render(_model.height, rainbowShield);
     }
 
     shield_node_t ShieldGenerator::findRoot(const Model &model) {
