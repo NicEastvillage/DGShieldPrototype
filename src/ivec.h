@@ -2,11 +2,12 @@
 #define DGSHIELDPROTOTYPE_IVEC_H
 
 #include <algorithm>
+#include <functional>
 #include "raylibns.h"
 
 namespace DGShield {
     struct ivec {
-        const int x, y;
+        int x, y;
 
         ivec(int px, int py) : x(px), y(py) {};
 
@@ -45,10 +46,14 @@ namespace DGShield {
 
     struct irect {
 
-        const ivec min, max;
+        ivec min, max;
 
         irect(ivec corner1, ivec corner2) : min(std::min(corner1.x, corner2.x), std::min(corner1.y, corner2.y)),
                                             max(std::max(corner1.x, corner2.x), std::max(corner1.y, corner2.y)) {};
+
+        [[nodiscard]] bool contains(ivec v) const {
+            return min.x <= v.x && v.x <= max.x && min.y <= v.y && v.y <= max.y;
+        }
 
         [[nodiscard]] bool isEmpty() const {
             return min.x > max.x || min.y > max.y;
@@ -74,5 +79,14 @@ namespace DGShield {
     };
 }
 
+namespace std {
+    template<>
+    struct hash<DGShield::ivec> {
+        const size_t operator()(const DGShield::ivec& v) const
+        {
+            return std::hash<int>()(v.x) ^ std::hash<int>()(v.y);
+        }
+    };
+}
 
 #endif //DGSHIELDPROTOTYPE_IVEC_H

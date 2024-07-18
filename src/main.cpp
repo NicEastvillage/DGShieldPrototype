@@ -4,9 +4,6 @@
 #include "ShieldGenerator.h"
 #include "Simulator.h"
 
-const int WIDTH = 600;
-const int HEIGHT = 400;
-
 using Model = DGShield::Model;
 using ShieldGenerator = DGShield::ShieldGenerator;
 using Simulator = DGShield::Simulator;
@@ -14,18 +11,35 @@ using Simulator = DGShield::Simulator;
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    rl::InitWindow(WIDTH * rl::TILE_SIZE, HEIGHT * rl::TILE_SIZE, "Dependency Graph Shield Refinement");
+//    Model m(12, 8);
+//    m.addDanger({{3, 5}, {7, 8}});
+//    m.addDanger({{10, 0}, {10, 4}});
 
-    Model m(WIDTH, HEIGHT);
-    m.makeDangerous({{70, 90}, {600, 0}});
-    m.makeDangerous({{210, 160}, {600, 0}});
-    m.makeDangerous({{400, 300}, {460, 170}});
-    m.makeDangerous({{190, 280}, {280, 390}});
-    m.makeDangerous({{500, 375}, {600, 400}});
+//    Model m(36, 24);
+//    m.addDanger({{8, 15}, {21, 24}});
+//    m.addDanger({{28, 0}, {30, 12}});
+//    m.addDanger({{11, 9}, {13, 12}});
+//    m.addDanger({{19, 13}, {20, 15}});
+//    m.addDanger({{6, 0}, {36, 3}});
+
+    Model m(150, 100);
+    m.addDanger({{18,  22}, {150, 0}});
+    m.addDanger({{52, 40}, {150, 0}});
+    m.addDanger({{100, 75}, {115, 42}});
+    m.addDanger({{48, 70}, {70, 98}});
+    m.addDanger({{125, 90}, {150, 100}});
+
+//    Model m(600, 400);
+//    m.addDanger({{70,  90}, {600, 0}});
+//    m.addDanger({{210, 160}, {600, 0}});
+//    m.addDanger({{400, 300}, {460, 170}});
+//    m.addDanger({{190, 280}, {280, 390}});
+//    m.addDanger({{500, 375}, {600, 400}});
 
     Simulator sim(m);
-
     ShieldGenerator gen(m);
+
+    rl::InitWindow(m.width * rl::TILE_SIZE, m.height * rl::TILE_SIZE, "Dependency Graph Shield Refinement");
 
     while (!rl::WindowShouldClose())
     {
@@ -36,13 +50,15 @@ int main() {
         if (rl::IsKeyPressed(rl::KEY_O)) sim.restart();
         if (rl::IsKeyDown(rl::KEY_L)) sim.step(DGShield::action_t(rand() % 3));
 
-        if (rl::IsKeyPressed(rl::KEY_N) && !gen.isDone()) gen.step();
+        if (rl::IsKeyPressed(rl::KEY_Q)) gen.reset();
+        if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
+        if (rl::IsKeyPressed(rl::KEY_E)) gen.runToCompletion();
 
         rl::BeginDrawing();
         ClearBackground(rl::RAYWHITE);
         m.render();
-        gen.render();
         sim.render();
+        gen.render();
         rl::EndDrawing();
     }
 

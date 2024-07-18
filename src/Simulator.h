@@ -7,7 +7,7 @@
 namespace DGShield {
     class Simulator {
     public:
-        explicit Simulator(DGShield::Model &model) : model(model) {
+        explicit Simulator(DGShield::Model &model) : _model(model) {
             restart();
         }
 
@@ -17,13 +17,13 @@ namespace DGShield {
 
         void finishWithRandomMoves();
 
-        [[nodiscard]] trace_t getTrace() const { return trace; };
+        [[nodiscard]] trace_t getTrace() const { return _trace; };
 
         void render() const;
 
     private:
-        Model &model;
-        trace_t trace;
+        Model &_model;
+        trace_t _trace;
     };
 }
 

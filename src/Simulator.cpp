@@ -2,24 +2,24 @@
 
 namespace DGShield {
     void Simulator::restart() {
-        trace = trace_t({ model.initial() }, &model);
+        _trace = trace_t({_model.initial() }, &_model);
     }
 
     state_t Simulator::step(DGShield::action_t action) {
-        state_t current = trace.states[trace.states.size() - 1];
-        std::vector<state_t> destinations = model.successors(current, action);
+        state_t current = _trace.states[_trace.states.size() - 1];
+        std::vector<state_t> destinations = _model.successors(current, action);
         state_t dest = destinations[rand() % destinations.size()];
-        trace.states.push_back(dest);
+        _trace.states.push_back(dest);
         return dest;
     }
 
     void Simulator::finishWithRandomMoves() {
-        state_t current = trace.states[trace.states.size() - 1];
+        state_t current = _trace.states[_trace.states.size() - 1];
         auto limit = 10000;
         while (current != step(action_t(rand() % 3)) && limit-- > 0) {}
     }
 
     void Simulator::render() const {
-        trace.render();
+        _trace.render();
     }
 }
