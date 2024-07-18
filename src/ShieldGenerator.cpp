@@ -47,20 +47,17 @@ namespace DGShield {
             lower->render(height, rainbowShield);
             upper->render(height, rainbowShield);
         } else {
-            opt_bool res = hasStrategy();
+            if (hasAnyUnexplored()) return;
             rl::Color color;
             if (rainbowShield) {
                 color = rl::WHITE;
                 if (action_allowed[0] == FALSE) color.r = 0;
-                else if (action_allowed[0] == MAYBE) color.r = 60;
                 if (action_allowed[1] == FALSE) color.g = 0;
-                else if (action_allowed[1] == MAYBE) color.g = 60;
                 if (action_allowed[2] == FALSE) color.b = 0;
-                else if (action_allowed[2] == MAYBE) color.b = 60;
             } else {
                 color = rl::GOLD;
-                if (res == TRUE) color = rl::GREEN;
-                else if (res == FALSE) color = rl::RED;
+                if (isAllAllowed()) color = rl::GREEN;
+                else if (isAllDisallowed()) color = rl::RED;
             }
 
             color.a = 15;
@@ -94,14 +91,14 @@ namespace DGShield {
         using namespace std::chrono;
         std::cout << "RUNNING TO COMPLETION..." << std::endl;
         auto start = high_resolution_clock::now();
-        determineStrategyDFS(_model.initial());
+        determineAssignmentsDFS(_model.initial());
         auto stop = high_resolution_clock::now();
         auto duration = duration_cast<milliseconds>(stop - start);
         std::cout << "DONE in " << duration.count() << " ms" << std::endl;
         _done = true;
     }
 
-    opt_bool ShieldGenerator::determineStrategyDFS(state_t state) {
+    const shield_node_t& ShieldGenerator::determineAssignmentsDFS(state_t state) {
         /*
         INPUT: state
         OUTPUT: has strategy (ok, none, unknown)
@@ -155,15 +152,15 @@ namespace DGShield {
         */
 
         shield_node_t *node = &_root.findSmallestContaining(state);
-        if (node->on_stack) return MAYBE; // Cycle detected
+        if (node->on_stack) return *node; // Cycle detected
 
         // Make sure smallest node does not intersect bad; split until true; return false if impossible
         while (true) {
-            if (node->isDone()) return node->hasStrategy();
+            if (node->isCertain()) return *node;
             if (_model.containsDanger(node->partition)) {
                 if (node->level == 0) {
                     node->disallowAllActions();
-                    return FALSE;
+                    return *node;
                 }
                 node->split();
                 node = &node->findSmallestContaining(state);
@@ -175,12 +172,13 @@ namespace DGShield {
         // Determine all allowed actions of this node
         node->on_stack = true;
         for (int i = 0; i < std::size(node->action_allowed); ++i) {
-            if (node->action_allowed[i] != MAYBE) continue;
+            if (node->action_allowed[i] == TRUE || node->action_allowed[i] == FALSE) continue;
+            if (node->action_allowed[i] == UNEXPLORED) node->action_allowed[i] = MAYBE;
             action_t action = (action_t)i;
-            bool ok = true;
+            bool certain_and_ok = true;
             for (state_t dest : _model.successors(node->partition, action)) { // TODO: Successor generator
-                opt_bool hasStrategy = determineStrategyDFS(dest);
-                if (hasStrategy == FALSE) {
+                const shield_node_t& dest_node = determineAssignmentsDFS(dest);
+                if (dest_node.isAllDisallowed()) {
                     // It is possible to end up in dangerous partition
                     if (node->canSplit()) {
                         // Split and try again with finer granularity
@@ -188,31 +186,30 @@ namespace DGShield {
                         node->split();
                         node = &node->findSmallestContaining(state);
                         node->on_stack = true;
-                        ok = false;
+                        certain_and_ok = false;
                         i = -1; // Restart action loop
                         break;
                     } else {
                         // Can't allow
                         node->action_allowed[i] = FALSE;
-                        ok = false;
+                        certain_and_ok = false;
                         break;
                     }
                 }
-                if (hasStrategy == MAYBE) {
+                if (!dest_node.isCertain()) {
                     // It is possible to cycle
-                    ok = false;
+                    certain_and_ok = false;
                 }
             }
-            if (ok) {
+            if (certain_and_ok) {
                 node->action_allowed[i] = TRUE;
             }
         }
         node->on_stack = false;
-        return node->hasStrategy();
+        return *node;
     }
 
     void ShieldGenerator::step() {
-        stackframe_t& frame = _stack.back();
         shield_node_t *node = &_root.findSmallestContaining(_model.initial());
         if (node->canSplit()) node->split();
     }

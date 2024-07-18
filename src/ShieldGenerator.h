@@ -5,8 +5,8 @@
 #include "Model.h"
 
 namespace DGShield {
-    enum opt_bool {
-        MAYBE, TRUE, FALSE
+    enum assignment_t {
+        UNEXPLORED, MAYBE, TRUE, FALSE
     };
 
     struct shield_node_t {
@@ -45,21 +45,20 @@ namespace DGShield {
             return lower != nullptr && upper != nullptr;
         }
 
-        [[nodiscard]] bool isDone() const {
+        [[nodiscard]] bool isCertain() const {
             assert(!isSplit());
             for (int i = 0; i < std::size(action_allowed); ++i) {
-                if (action_allowed[i] == MAYBE) return false;
+                if (action_allowed[i] == MAYBE || action_allowed[i] == UNEXPLORED) return false;
             }
             return true;
         }
 
-        [[nodiscard]] opt_bool hasStrategy() const {
-            opt_bool res = FALSE;
+        [[nodiscard]] bool isAllUncertain() const {
+            assert(!isSplit());
             for (int i = 0; i < std::size(action_allowed); ++i) {
-                if (action_allowed[i] == MAYBE) return MAYBE;
-                if (action_allowed[i] == TRUE) return TRUE;
+                if (action_allowed[i] == TRUE || action_allowed[i] == FALSE) return false;
             }
-            return res;
+            return true;
         }
 
         [[nodiscard]] bool hasAnyDisallowed() const {
@@ -67,6 +66,27 @@ namespace DGShield {
                 if (action_allowed[i] == FALSE) return true;
             }
             return false;
+        }
+
+        [[nodiscard]] bool hasAnyUnexplored() const {
+            for (int i = 0; i < std::size(action_allowed); ++i) {
+                if (action_allowed[i] == UNEXPLORED) return true;
+            }
+            return false;
+        }
+
+        [[nodiscard]] bool isAllAllowed() const {
+            for (int i = 0; i < std::size(action_allowed); ++i) {
+                if (action_allowed[i] != TRUE) return false;
+            }
+            return true;
+        }
+
+        [[nodiscard]] bool isAllDisallowed() const {
+            for (int i = 0; i < std::size(action_allowed); ++i) {
+                if (action_allowed[i] != FALSE) return false;
+            }
+            return true;
         }
 
         [[nodiscard]] const shield_node_t& findSmallestContaining(state_t state) const;
@@ -78,7 +98,7 @@ namespace DGShield {
         irect partition;
         int level;
         shield_node_t *lower{}, *upper{};
-        opt_bool action_allowed[3] = { MAYBE, MAYBE, MAYBE };
+        assignment_t action_allowed[3] = { UNEXPLORED, UNEXPLORED, UNEXPLORED };
         bool on_stack = false;
     };
 
@@ -108,25 +128,14 @@ namespace DGShield {
         void render(bool rainbowShield) const;
 
     private:
-        enum status_t {
-            INIT, ACTIONS
-        };
-
-        struct stackframe_t {
-            shield_node_t &node;
-            status_t status;
-            action_t current_action;
-        };
-
         shield_node_t findRoot(const Model &model);
 
-        opt_bool determineStrategyDFS(state_t state);
+        const shield_node_t& determineAssignmentsDFS(state_t state);
 
     private:
         bool _done = false;
         const Model& _model;
         shield_node_t _root;
-        std::vector<stackframe_t> _stack;
     };
 }
 
