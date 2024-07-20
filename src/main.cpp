@@ -1,27 +1,25 @@
 #include <iostream>
 #include "raylibns.h"
 #include "Model.h"
-#include "ShieldGenerator.h"
+#include "ShieldGeneratorDG.h"
 #include "Simulator.h"
 
 using Model = DGShield::Model;
-using ShieldGenerator = DGShield::ShieldGenerator;
+using ShieldGeneratorDG = DGShield::ShieldGeneratorDG;
 using Simulator = DGShield::Simulator;
 using ivec = DGShield::ivec;
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-
 //    Model m(12, 8);
 //    m.addDanger({{3, 5}, {7, 8}});
-//    m.addDanger({{10, 0}, {10, 4}});
+//    m.addDanger({{11, 0}, {11, 4}});
 
-    Model m(36, 24);
-    m.addDanger({{8, 15}, {21, 24}});
-    m.addDanger({{28, 0}, {30, 12}});
-    m.addDanger({{11, 9}, {13, 12}});
-    m.addDanger({{19, 13}, {20, 15}});
-    m.addDanger({{6, 0}, {36, 3}});
+//    Model m(36, 24);
+//    m.addDanger({{8, 15}, {21, 24}});
+//    m.addDanger({{28, 0}, {30, 12}});
+//    m.addDanger({{11, 9}, {13, 12}});
+//    m.addDanger({{19, 13}, {20, 15}});
+//    m.addDanger({{6, 0}, {36, 3}});
 
 //    Model m(150, 100);
 //    m.addDanger({{18,  22}, {150, 0}});
@@ -30,12 +28,12 @@ int main() {
 //    m.addDanger({{48, 70}, {70, 98}});
 //    m.addDanger({{125, 90}, {150, 100}});
 
-//    Model m(300, 200);
-//    m.addDanger({{35,  45}, {300, 0}});
-//    m.addDanger({{105, 80}, {300, 0}});
-//    m.addDanger({{200, 150}, {230, 85}});
-//    m.addDanger({{95, 140}, {140, 195}});
-//    m.addDanger({{250, 180}, {300, 200}});
+    Model m(300, 200);
+    m.addDanger({{35,  45}, {300, 0}});
+    m.addDanger({{105, 80}, {300, 0}});
+    m.addDanger({{200, 150}, {230, 85}});
+    m.addDanger({{95, 140}, {140, 195}});
+    m.addDanger({{250, 180}, {300, 200}});
 
 //    Model m(600, 400);
 //    m.addDanger({{70,  90}, {600, 0}});
@@ -44,7 +42,7 @@ int main() {
 //    m.addDanger({{190, 280}, {280, 390}});
 //    m.addDanger({{500, 375}, {600, 400}});
 
-    ShieldGenerator gen(m);
+    ShieldGeneratorDG gen(m);
     Simulator sim(m, gen);
 
     rl::InitWindow(m.width * rl::TILE_SIZE, m.height * rl::TILE_SIZE, "Dependency Graph Shield Refinement");
@@ -70,8 +68,8 @@ int main() {
         if (rl::IsKeyPressed(rl::KEY_I)) sim.reset();
 
         if (rl::IsKeyPressed(rl::KEY_Q)) gen.reset();
-        if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
-        if (rl::IsKeyPressed(rl::KEY_E)) gen.runToCompletion();
+        //if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
+        if (rl::IsKeyPressed(rl::KEY_E)) gen.run();
 
         if (rl::IsKeyPressed(rl::KEY_S)) rainbowShield = !rainbowShield;
 

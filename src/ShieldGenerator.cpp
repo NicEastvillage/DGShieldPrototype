@@ -5,7 +5,7 @@
 namespace DGShield {
     void shield_node_t::split() {
         assert(!isSplit());
-        assert(level >= 0);
+        assert(level > 0);
         int mid = middle();
         if (isSplitAxisX()) {
             lower = new shield_node_t({{partition.min.x, partition.min.y}, {mid - 1, partition.max.y}}, level - 1);

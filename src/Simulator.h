@@ -3,12 +3,12 @@
 
 #include "Model.h"
 #include "Trace.h"
-#include "ShieldGenerator.h"
+#include "ShieldGeneratorDG.h"
 
 namespace DGShield {
     class Simulator {
     public:
-        explicit Simulator(const DGShield::Model &model, const ShieldGenerator& shield_gen) : _model(model), _shield_gen(shield_gen) {
+        explicit Simulator(const DGShield::Model &model, const ShieldGeneratorDG& shield_gen) : _model(model), _shield_gen(shield_gen) {
             reset();
         }
 
@@ -29,7 +29,7 @@ namespace DGShield {
     private:
         const Model &_model;
         trace_t _trace;
-        const ShieldGenerator& _shield_gen;
+        const ShieldGeneratorDG& _shield_gen;
     };
 }
 

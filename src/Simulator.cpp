@@ -21,9 +21,9 @@ namespace DGShield {
         if (!_shield_gen.isDone()) return stepRandom();
         state_t current = _trace.states[_trace.states.size() - 1];
         auto shield = _shield_gen.getShield().findSmallestContaining(current);
-        if (shield.hasAnyUnexplored() || shield.isAllDisallowed()) return stepRandom();
+        if (shield.isAnyUnexplored() || shield.isAllUnsafe()) return stepRandom();
         action_t action = action_t(rand() % 3);
-        while (shield.action_allowed[action] == FALSE) action = action_t(rand() % 3);
+        while (shield.assignment[action] == UNSAFE) action = action_t(rand() % 3);
         std::vector<state_t> destinations = _model.successors(current, action);
         state_t dest = destinations[rand() % destinations.size()];
         _trace.states.push_back(dest);

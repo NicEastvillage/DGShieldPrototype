@@ -11,7 +11,7 @@ namespace DGShield {
 
     struct shield_node_t {
     public:
-        explicit shield_node_t(irect partition, int level) : partition(std::move(partition)), level(level) {
+        explicit shield_node_t(irect partition, int level) : partition(partition), level(level) {
             assert(level >= 0);
         }
 
