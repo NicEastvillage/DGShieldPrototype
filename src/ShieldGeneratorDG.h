@@ -14,6 +14,7 @@ namespace DGShield {
     struct config_t;
     struct edge_t {
         action_t action;
+        // Counter to indicate how many targets have unknown assignments, -1 if any target is unsafe
         int meta;
         config_t *source{};
         std::vector<state_t> targets{};
@@ -50,8 +51,10 @@ namespace DGShield {
             return !isSplit() && level > 0;
         }
 
+        // Split this configuration, but do not give child configurations any assignment or edges
         void fastSplit();
 
+        // Split this configuration and transfer current assignment and dependants (incoming edges) to the children
         void heavySplit();
 
         [[nodiscard]] bool isSplit() const {
@@ -118,7 +121,7 @@ namespace DGShield {
 
     class ShieldGeneratorDG {
     public:
-        explicit ShieldGeneratorDG(const Model &model) : _model(model), _root(findRoot(model)) {}
+        explicit ShieldGeneratorDG(const Model &model) : _model(model), _root(createRoot(model)) {}
 
         void reset() {
             if (_root.isSplit()) {
@@ -127,7 +130,9 @@ namespace DGShield {
                 delete _root.child_high_low;
                 delete _root.child_high_high;
             }
-            _root = findRoot(_model);
+            _root = createRoot(_model);
+            _forward_queue.clear();
+            _back_queue.clear();
             _done = false;
         }
 
@@ -144,12 +149,14 @@ namespace DGShield {
         };
 
     private:
-        static config_t findRoot(const Model &model);
+        // Create a root partition that covers the entire state space
+        static config_t createRoot(const Model &model);
 
-        config_t& findNontrivialConfig(state_t state);
+        // Find the smallest configuration containing the given state and not containing any unsafe states (if possible).
+        // Configurations may be split in order to find such a configuration.
+        config_t& tryFindSafeConfigOf(state_t state);
 
-        void findEdges(config_t& conf);
-
+        // Add and queue out-going edges of the given configuration.
         void explore(config_t& conf, bool exploreMaybes);
 
     private:

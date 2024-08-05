@@ -13,7 +13,7 @@ namespace DGShield {
 
     class Model {
     public:
-        explicit Model(int pwidth, int pheight) : width(pwidth), height(pheight), _initial( 0, height / 2), _dangers() {};
+        explicit Model(int width, int height) : width(width), height(height), _initial(0, height / 2), _dangers() {};
 
         [[nodiscard]] bool containsDanger(ivec v) const {
             for (irect danger : _dangers) {
@@ -23,6 +23,7 @@ namespace DGShield {
         }
 
         [[nodiscard]] bool containsDanger(irect r) const {
+            // ASSUMPTION: Must be fast
             for (irect danger : _dangers) {
                 if (danger.intersects(r)) return true;
             }

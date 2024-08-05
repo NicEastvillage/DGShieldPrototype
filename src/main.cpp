@@ -31,7 +31,7 @@ int main() {
     Model m(300, 200);
     m.addDanger({{35,  45}, {300, 0}});
     m.addDanger({{105, 80}, {300, 0}});
-    m.addDanger({{200, 150}, {230, 85}});
+    m.addDanger({{200, 150}, {230, 82}});
     m.addDanger({{95, 140}, {140, 195}});
     m.addDanger({{250, 180}, {300, 200}});
 

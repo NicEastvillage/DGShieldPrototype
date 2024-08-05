@@ -25,6 +25,7 @@ namespace DGShield {
     }
 
     std::vector<state_t> Model::successors(irect states, action_t action) const {
+        // ASSUMPTION: Must be fast, but it is okay not to include successors in the source partition
         assert(!states.isEmpty());
         std::unordered_set<state_t> res;
         if (action == UP) {

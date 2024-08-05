@@ -14,7 +14,7 @@ namespace DGShield {
 
     void config_t::heavySplit() {
         fastSplit();
-        // Each dependant must be given to the right child
+        // Each dependant must be assigned to the correct child
         for (edge_t *e : dependants) {
             for (state_t t : e->targets) {
                 if (partition.contains(t)) {
@@ -27,6 +27,7 @@ namespace DGShield {
         }
         dependants.clear();
 
+        // Transfer current assignment
         std::copy(assignment, assignment + std::size(assignment), child_low_low->assignment);
         std::copy(assignment, assignment + std::size(assignment), child_low_high->assignment);
         std::copy(assignment, assignment + std::size(assignment), child_high_low->assignment);
@@ -102,7 +103,7 @@ namespace DGShield {
         }
     }
 
-    config_t ShieldGeneratorDG::findRoot(const Model &model) {
+    config_t ShieldGeneratorDG::createRoot(const Model &model) {
         int size = 1;
         int rootLevel = 0;
         while (size < std::max(model.width, model.height)) {
@@ -115,7 +116,7 @@ namespace DGShield {
     void ShieldGeneratorDG::run() {
         if (_done) return;
 
-        config_t& init_conf = findNontrivialConfig(_model.initial());
+        config_t& init_conf = tryFindSafeConfigOf(_model.initial());
         explore(init_conf, false);
 
         while (!_back_queue.empty() || !_forward_queue.empty()) {
@@ -127,6 +128,7 @@ namespace DGShield {
 
                 assignment_t source_assign = edge->source->assignment[edge->action];
                 if (source_assign == SAFE || source_assign == UNSAFE || edge->source->isSplit()) {
+                    // Edge is outdated
                     continue;
                 }
 
@@ -140,9 +142,10 @@ namespace DGShield {
                         explore(*edge->source->child_high_low, true);
                         explore(*edge->source->child_high_high, true);
                     } else {
-                        // We cannot allow this action
+                        // We cannot allow this action in the source configuration
                         edge->source->assignment[edge->action] = UNSAFE;
                         if (edge->source->isAllUnsafe()) {
+                            // Queue back-propagation of danger
                             for (edge_t *e : edge->source->dependants) {
                                 e->meta = -1;
                                 _back_queue.push_back(e);
@@ -156,6 +159,7 @@ namespace DGShield {
                             if (e->meta > 0) {
                                 e->meta -= 1;
                                 if (e->meta == 0) {
+                                    // Queue back-propagation of safety
                                     _back_queue.push_back(e);
                                 }
                             }
@@ -163,7 +167,7 @@ namespace DGShield {
                         edge->targets.clear();
                     }
                 } else {
-                    assert(false);
+                    assert(false && "meta counter is always -1 or 0 for edges in _back_queue");
                 }
 
             } else {
@@ -173,16 +177,17 @@ namespace DGShield {
 
                 assignment_t source_assign = edge->source->assignment[edge->action];
                 if (source_assign == SAFE || source_assign == UNSAFE || edge->source->isSplit()) {
+                    // Edge is outdated
                     continue;
                 }
 
-                if (!edge->targets.empty()) continue;
+                assert(edge->targets.empty() && "edges in _forward_queue has no targets yet");
 
-                // Compute targets
+                // Compute targets of edge
                 assert(edge->targets.empty());
                 bool ok = true;
                 for (state_t s : _model.successors(edge->source->partition, edge->action)) {
-                    config_t& conf = findNontrivialConfig(s);
+                    config_t& conf = tryFindSafeConfigOf(s);
                     if (conf.isAllUnsafe()) {
                         ok = false;
                         break;
@@ -191,20 +196,20 @@ namespace DGShield {
                         continue;
                     }
                     if (conf.isAnyUnexplored()) {
-                        // TODO: Is it possible that only some assignments are unexplored?
                         explore(conf, false);
                     }
                     edge->targets.push_back(s);
                     conf.dependants.push_back(edge);
                 }
                 if (!ok) {
-                    // A target is unsafe; not ok; we can immediately back propagate
+                    // A target is completely unsafe; not ok; we can immediately back propagate
                     edge->targets.clear();
                     edge->meta = -1;
                     _back_queue.push_back(edge);
                 } else {
                     edge->meta = edge->targets.size();
                     if (edge->meta == 0) {
+                        // Edge has no targets and trivially safe; Queue for back-propagation immediately
                         _back_queue.push_back(edge);
                     }
                 }
@@ -213,9 +218,9 @@ namespace DGShield {
         _done = true;
     }
 
-    config_t& ShieldGeneratorDG::findNontrivialConfig(state_t state) {
+    config_t& ShieldGeneratorDG::tryFindSafeConfigOf(state_t state) {
         config_t* conf = &_root.findSmallestContaining(state);
-        // Make sure smallest conf does not intersect bad; split until true; return false if impossible
+        // Make sure smallest configuration does not intersect bad; split until true (if possible)
         while (true) {
             if (_model.containsDanger(conf->partition)) {
                 if (conf->level == 0) {
@@ -232,11 +237,11 @@ namespace DGShield {
     }
 
     void ShieldGeneratorDG::explore(config_t &conf, bool exploreMaybes) {
-        for (int i = 0; i < 3; ++i) {
-            if (conf.assignment[i] == UNEXPLORED || (exploreMaybes && conf.assignment[i] == MAYBE)) {
-                conf.assignment[i] = MAYBE;
-                conf.dependencies[i] = edge_t((action_t)i, INT_MAX, &conf, {});
-                _forward_queue.push_back(&conf.dependencies[i]);
+        for (int action = 0; action < 3; ++action) {
+            if (conf.assignment[action] == UNEXPLORED || (exploreMaybes && conf.assignment[action] == MAYBE)) {
+                conf.assignment[action] = MAYBE;
+                conf.dependencies[action] = edge_t((action_t)action, INT_MAX, &conf, {});
+                _forward_queue.push_back(&conf.dependencies[action]);
             }
         }
     }
