@@ -19,6 +19,7 @@ The algorithm can be easily generalized to continuous models if a maximum refine
 ### Controls
 
 - `LMB (left click)`: Change initial state
+- `RMB`: Add/remove walls
 - `UP`/`RIGHT`/`DOWN`: Take an up/right/down action
 - `P`: Simulate trace (respecting shield if computed)
 - `O` (hold): Take random action (respecting shield if computed)

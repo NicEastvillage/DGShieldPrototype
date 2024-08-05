@@ -8,6 +8,7 @@ using Model = DGShield::Model;
 using ShieldGeneratorDG = DGShield::ShieldGeneratorDG;
 using Simulator = DGShield::Simulator;
 using ivec = DGShield::ivec;
+using irect = DGShield::irect;
 
 int main() {
 //    Model m(12, 8);
@@ -48,34 +49,67 @@ int main() {
     rl::InitWindow(m.width * rl::TILE_SIZE, m.height * rl::TILE_SIZE, "Dependency Graph Shield Refinement");
 
     bool rainbowShield = false;
+    bool addingDanger = false;
+    ivec addingDangerStart(0, 0);
+    ivec addingDangerEnd(0, 0);
 
     while (!rl::WindowShouldClose())
     {
-        if (rl::IsMouseButtonPressed(rl::MOUSE_BUTTON_LEFT)) {
+        if (rl::IsMouseButtonPressed(rl::MOUSE_BUTTON_RIGHT)) {
             gen.reset();
+            sim.reset();
             ivec mpos = ivec(rl::GetMousePosition());
             mpos.y = rl::GetScreenHeight() - mpos.y;
-            m.setInitial({ mpos.x / rl::TILE_SIZE, mpos.y / rl::TILE_SIZE });
-            sim.reset();
+            addingDangerStart = { mpos.x / rl::TILE_SIZE, mpos.y / rl::TILE_SIZE };
+            if (!m.removeDangerIntersecting(addingDangerStart)) {
+                addingDanger = true;
+            }
+        } else if (addingDanger && rl::IsMouseButtonDown(rl::MOUSE_BUTTON_RIGHT)) {
+            ivec mpos = ivec(rl::GetMousePosition());
+            mpos.y = rl::GetScreenHeight() - mpos.y;
+            addingDangerEnd = { mpos.x / rl::TILE_SIZE, mpos.y / rl::TILE_SIZE };
+        } else {
+            if (addingDanger && rl::IsMouseButtonReleased(rl::MOUSE_BUTTON_RIGHT)) {
+                addingDanger = false;
+                m.addDanger({ addingDangerStart, addingDangerEnd });
+            }
+
+            if (rl::IsMouseButtonPressed(rl::MOUSE_BUTTON_LEFT)) {
+                gen.reset();
+                ivec mpos = ivec(rl::GetMousePosition());
+                mpos.y = rl::GetScreenHeight() - mpos.y;
+                m.setInitial({ mpos.x / rl::TILE_SIZE, mpos.y / rl::TILE_SIZE });
+                sim.reset();
+            }
+
+            if (rl::IsKeyPressed(rl::KEY_RIGHT)) sim.step(DGShield::action_t::FORWARD);
+            if (rl::IsKeyPressed(rl::KEY_UP)) sim.step(DGShield::action_t::UP);
+            if (rl::IsKeyPressed(rl::KEY_DOWN)) sim.step(DGShield::action_t::DOWN);
+
+            if (rl::IsKeyPressed(rl::KEY_P)) sim.finishWithRandomMoves();
+            if (rl::IsKeyDown(rl::KEY_O)) sim.safeStepRandom();
+            if (rl::IsKeyPressed(rl::KEY_I)) sim.reset();
+
+            if (rl::IsKeyPressed(rl::KEY_Q)) gen.reset();
+            //if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
+            if (rl::IsKeyPressed(rl::KEY_E)) gen.run();
+
+            if (rl::IsKeyPressed(rl::KEY_S)) rainbowShield = !rainbowShield;
         }
-
-        if (rl::IsKeyPressed(rl::KEY_RIGHT)) sim.step(DGShield::action_t::FORWARD);
-        if (rl::IsKeyPressed(rl::KEY_UP)) sim.step(DGShield::action_t::UP);
-        if (rl::IsKeyPressed(rl::KEY_DOWN)) sim.step(DGShield::action_t::DOWN);
-
-        if (rl::IsKeyPressed(rl::KEY_P)) sim.finishWithRandomMoves();
-        if (rl::IsKeyDown(rl::KEY_O)) sim.safeStepRandom();
-        if (rl::IsKeyPressed(rl::KEY_I)) sim.reset();
-
-        if (rl::IsKeyPressed(rl::KEY_Q)) gen.reset();
-        //if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
-        if (rl::IsKeyPressed(rl::KEY_E)) gen.run();
-
-        if (rl::IsKeyPressed(rl::KEY_S)) rainbowShield = !rainbowShield;
 
         rl::BeginDrawing();
         ClearBackground(rl::RAYWHITE);
         m.render();
+        if (addingDanger) {
+            irect danger(addingDangerStart, addingDangerEnd);
+            rl::DrawRectangle(
+                    danger.min.x * rl::TILE_SIZE,
+                    (m.height - danger.max.y - 1) * rl::TILE_SIZE,
+                    (danger.max.x - danger.min.x + 1) * rl::TILE_SIZE,
+                    (danger.max.y - danger.min.y + 1) * rl::TILE_SIZE,
+                    rl::GRAY
+            );
+        }
         sim.render();
         gen.render(rainbowShield);
         rl::EndDrawing();

@@ -35,6 +35,17 @@ namespace DGShield {
             _dangers.push_back(r);
         }
 
+        bool removeDangerIntersecting(ivec pos) {
+            bool anyRemoved = false;
+            for (int i = _dangers.size() - 1; i >= 0; --i) {
+                if (_dangers[i].contains(pos)) {
+                    _dangers.erase(_dangers.begin() + i);
+                    anyRemoved = true;
+                }
+            }
+            return anyRemoved;
+        }
+
         void setInitial(state_t state) {
             _initial = state;
         }
