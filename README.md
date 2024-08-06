@@ -27,7 +27,8 @@ The algorithm can be easily generalized to continuous models if a maximum refine
 - `E`: Compute shield
 - `Q`: Remove shield
 - `S`: Change color of shield
-  - Default: Red = all actions are unsafe; green = all outgoing traces are completely safe; yellow = explored but not completely safe; No color = unexplored.
+  - LocalSafety (default): Red = no actions are safe; green = some action is safe; Yellow = unexplored.
+  - FutureSafety: Red = no future is safe; green = all futures are safe; light blue = some future is safe; No color = unexplored. 
   - Rainbow: Red channel = right action is safe; Blue channel = down action is safe; Green channel = up action is safe. No color = unexplored. (i.e. yellow implies both right and up actions are safe)
 
 ### Assumptions

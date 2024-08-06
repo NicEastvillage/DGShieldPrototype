@@ -57,24 +57,33 @@ namespace DGShield {
         return child_high_high->findSmallestContaining(state);
     }
 
-    void config_t::render(int height, bool rainbowShield) const {
+    void config_t::render(int height, shield_render_mode_t rmode) const {
         if (isSplit()) {
-            child_low_low->render(height, rainbowShield);
-            child_low_high->render(height, rainbowShield);
-            child_high_low->render(height, rainbowShield);
-            child_high_high->render(height, rainbowShield);
+            child_low_low->render(height, rmode);
+            child_low_high->render(height, rmode);
+            child_high_low->render(height, rmode);
+            child_high_high->render(height, rmode);
         } else {
-            if (isAnyUnexplored()) return;
             rl::Color color;
-            if (rainbowShield) {
-                color = rl::WHITE;
-                if (assignment[0] == UNSAFE) color.r = 0;
-                if (assignment[1] == UNSAFE) color.g = 0;
-                if (assignment[2] == UNSAFE) color.b = 0;
-            } else {
-                color = rl::GOLD;
-                if (isAllSafe()) color = rl::GREEN;
-                else if (isAllUnsafe()) color = rl::RED;
+            switch (rmode) {
+                case RMODE_LOCAL_SAFETY:
+                    color = rl::GREEN;
+                    if (isAnyUnexplored()) color = rl::GOLD;
+                    else if (isAllUnsafe()) color = rl::RED;
+                    break;
+                case RMODE_FUTURE_SAFETY:
+                    if (isAnyUnexplored()) return;
+                    color = { 142, 201, 255, 255 };
+                    if (isAllSafe()) color = rl::GREEN;
+                    else if (isAllUnsafe()) color = rl::RED;
+                    break;
+                case RMODE_RAINBOW:
+                    if (isAnyUnexplored()) return;
+                    color = rl::WHITE;
+                    if (assignment[0] == UNSAFE) color.r = 0;
+                    if (assignment[1] == UNSAFE) color.g = 0;
+                    if (assignment[2] == UNSAFE) color.b = 0;
+                    break;
             }
 
             color.a = 15;

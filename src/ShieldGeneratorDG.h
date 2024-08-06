@@ -11,6 +11,10 @@ namespace DGShield {
         UNEXPLORED, MAYBE, SAFE, UNSAFE
     };
 
+    enum shield_render_mode_t {
+        RMODE_LOCAL_SAFETY, RMODE_FUTURE_SAFETY, RMODE_RAINBOW
+    };
+
     struct config_t;
     struct edge_t {
         action_t action;
@@ -91,9 +95,9 @@ namespace DGShield {
             return true;
         }
 
-        [[nodiscard]] bool isAnyUnsafe() const {
+        [[nodiscard]] bool isAnySafe() const {
             for (int i = 0; i < std::size(assignment); ++i) {
-                if (assignment[i] == UNSAFE) return true;
+                if (assignment[i] == SAFE) return true;
             }
             return false;
         }
@@ -108,7 +112,7 @@ namespace DGShield {
         [[nodiscard]] const config_t& findSmallestContaining(state_t state) const;
         [[nodiscard]] config_t& findSmallestContaining(state_t state);
 
-        void render(int height, bool rainbowShield) const;
+        void render(int height, shield_render_mode_t rmode) const;
 
     public:
         irect partition;
@@ -144,8 +148,8 @@ namespace DGShield {
             return _root;
         };
 
-        void render(bool rainbowShield) const {
-            _root.render(_model.height, rainbowShield);
+        void render(shield_render_mode_t rmode) const {
+            _root.render(_model.height, rmode);
         };
 
     private:

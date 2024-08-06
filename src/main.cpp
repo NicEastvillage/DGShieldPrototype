@@ -6,6 +6,7 @@
 
 using Model = DGShield::Model;
 using ShieldGeneratorDG = DGShield::ShieldGeneratorDG;
+using shield_render_mode_t = DGShield::shield_render_mode_t;
 using Simulator = DGShield::Simulator;
 using ivec = DGShield::ivec;
 using irect = DGShield::irect;
@@ -48,7 +49,7 @@ int main() {
 
     rl::InitWindow(m.width * rl::TILE_SIZE, m.height * rl::TILE_SIZE, "Dependency Graph Shield Refinement");
 
-    bool rainbowShield = false;
+    shield_render_mode_t shieldRenderMode = DGShield::RMODE_LOCAL_SAFETY;
     bool addingDanger = false;
     ivec addingDangerStart(0, 0);
     ivec addingDangerEnd(0, 0);
@@ -94,7 +95,7 @@ int main() {
             //if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
             if (rl::IsKeyPressed(rl::KEY_E)) gen.run();
 
-            if (rl::IsKeyPressed(rl::KEY_S)) rainbowShield = !rainbowShield;
+            if (rl::IsKeyPressed(rl::KEY_S)) shieldRenderMode = (shield_render_mode_t)(((int)shieldRenderMode + 1) % 3);
         }
 
         rl::BeginDrawing();
@@ -111,7 +112,7 @@ int main() {
             );
         }
         sim.render();
-        gen.render(rainbowShield);
+        gen.render(shieldRenderMode);
         rl::EndDrawing();
     }
 
