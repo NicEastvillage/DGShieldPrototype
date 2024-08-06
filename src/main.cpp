@@ -94,12 +94,13 @@ int main() {
             if (rl::IsKeyPressed(rl::KEY_Q)) gen.reset();
             //if (rl::IsKeyPressed(rl::KEY_W)) gen.step();
             if (rl::IsKeyPressed(rl::KEY_E)) gen.run();
+            if (rl::IsKeyPressed(rl::KEY_D)) gen.makeCompact();
 
             if (rl::IsKeyPressed(rl::KEY_S)) shieldRenderMode = (shield_render_mode_t)(((int)shieldRenderMode + 1) % 3);
         }
 
         rl::BeginDrawing();
-        ClearBackground(rl::RAYWHITE);
+        ClearBackground(rl::WHITE);
         m.render();
         if (addingDanger) {
             irect danger(addingDangerStart, addingDangerEnd);

@@ -26,6 +26,7 @@ The algorithm can be easily generalized to continuous models if a maximum refine
 - `I`: Reset trace
 - `E`: Compute shield
 - `Q`: Remove shield
+- `D`: Compact shield
 - `S`: Change color of shield
   - LocalSafety (default): Red = no actions are safe; green = some action is safe; Yellow = unexplored.
   - FutureSafety: Red = no future is safe; green = all futures are safe; light blue = some future is safe; No color = unexplored. 

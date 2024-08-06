@@ -112,6 +112,9 @@ namespace DGShield {
         [[nodiscard]] const config_t& findSmallestContaining(state_t state) const;
         [[nodiscard]] config_t& findSmallestContaining(state_t state);
 
+        // Returns true if configuration was reduced to a leaf partition where all actions are unsafe
+        bool makeCompact();
+
         void render(int height, shield_render_mode_t rmode) const;
 
     public:
@@ -147,6 +150,8 @@ namespace DGShield {
         [[nodiscard]] const config_t& getShield() const {
             return _root;
         };
+
+        void makeCompact();
 
         void render(shield_render_mode_t rmode) const {
             _root.render(_model.height, rmode);

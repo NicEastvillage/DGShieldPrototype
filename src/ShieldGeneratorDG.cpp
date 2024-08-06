@@ -57,6 +57,26 @@ namespace DGShield {
         return child_high_high->findSmallestContaining(state);
     }
 
+    bool config_t::makeCompact() {
+        if (!isSplit()) return isAllUnsafe();
+
+        bool reduce = true;
+        reduce &= child_low_low->makeCompact();
+        reduce &= child_low_high->makeCompact();
+        reduce &= child_high_low->makeCompact();
+        reduce &= child_high_high->makeCompact();
+
+        if (!reduce) return false;
+
+        delete child_low_low; child_low_low = nullptr;
+        delete child_low_high; child_low_high = nullptr;
+        delete child_high_low; child_high_low = nullptr;
+        delete child_high_high; child_high_high = nullptr;
+
+        std::fill(assignment, assignment + std::size(assignment), UNSAFE);
+        return true;
+    }
+
     void config_t::render(int height, shield_render_mode_t rmode) const {
         if (isSplit()) {
             child_low_low->render(height, rmode);
@@ -79,7 +99,7 @@ namespace DGShield {
                     break;
                 case RMODE_RAINBOW:
                     if (isAnyUnexplored()) return;
-                    color = rl::WHITE;
+                    color = { 224, 224, 224, 255 };
                     if (assignment[0] == UNSAFE) color.r = 0;
                     if (assignment[1] == UNSAFE) color.g = 0;
                     if (assignment[2] == UNSAFE) color.b = 0;
@@ -253,5 +273,10 @@ namespace DGShield {
                 _forward_queue.push_back(&conf.dependencies[action]);
             }
         }
+    }
+
+    void ShieldGeneratorDG::makeCompact() {
+        if (!isDone()) return;
+        _root.makeCompact();
     }
 }
