@@ -1,3 +1,5 @@
+#include <chrono>
+#include <iostream>
 #include "ShieldGeneratorDG.h"
 
 namespace DGShield {
@@ -145,19 +147,23 @@ namespace DGShield {
     void ShieldGeneratorDG::run() {
         if (_done) return;
 
+        std::cout << "Running algorithm ... ";
+        auto startTime = std::chrono::high_resolution_clock::now();
+
         config_t& init_conf = tryFindSafeConfigOf(_model.initial());
         explore(init_conf, false);
 
         while (!_back_queue.empty() || !_forward_queue.empty()) {
 
             if (!_back_queue.empty()) {
-                edge_t* edge;
-                edge = _back_queue.back();
+                _stat_back_props_total++;
+                edge_t* edge = _back_queue.back();
                 _back_queue.pop_back();
 
                 assignment_t source_assign = edge->source->assignment[edge->action];
                 if (source_assign == SAFE || source_assign == UNSAFE || edge->source->isSplit()) {
                     // Edge is outdated
+                    _stat_back_props_pruned++;
                     continue;
                 }
 
@@ -170,6 +176,7 @@ namespace DGShield {
                         explore(*edge->source->child_low_high, true);
                         explore(*edge->source->child_high_low, true);
                         explore(*edge->source->child_high_high, true);
+                        _stat_heavy_splits++;
                     } else {
                         // We cannot allow this action in the source configuration
                         edge->source->assignment[edge->action] = UNSAFE;
@@ -200,8 +207,8 @@ namespace DGShield {
                 }
 
             } else {
-                edge_t* edge;
-                edge = _forward_queue.back();
+                _stat_explorations++;
+                edge_t* edge = _forward_queue.back();
                 _forward_queue.pop_back();
 
                 assignment_t source_assign = edge->source->assignment[edge->action];
@@ -245,6 +252,15 @@ namespace DGShield {
             }
         }
         _done = true;
+
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        std::cout << "Done" << std::endl;
+        std::cout << "- Time spent: " << duration << std::endl;
+        std::cout << "- Back props (incl. pruned): " << _stat_back_props_total << std::endl;
+        std::cout << "- Back props (excl. pruned): " << (_stat_back_props_total - _stat_back_props_pruned) << std::endl;
+        std::cout << "- Explorations: " << _stat_explorations << std::endl;
+        std::cout << "- Heavy splits: " << _stat_heavy_splits << std::endl;
     }
 
     config_t& ShieldGeneratorDG::tryFindSafeConfigOf(state_t state) {

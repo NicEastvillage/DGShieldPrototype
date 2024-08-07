@@ -140,6 +140,10 @@ namespace DGShield {
             _root = createRoot(_model);
             _forward_queue.clear();
             _back_queue.clear();
+            _stat_back_props_total = 0;
+            _stat_back_props_pruned = 0;
+            _stat_explorations = 0;
+            _stat_heavy_splits = 0;
             _done = false;
         }
 
@@ -174,6 +178,11 @@ namespace DGShield {
         config_t _root;
         std::vector<edge_t*> _forward_queue{};
         std::vector<edge_t*> _back_queue{};
+
+        int _stat_back_props_total = 0;
+        int _stat_back_props_pruned = 0;
+        int _stat_explorations = 0;
+        int _stat_heavy_splits = 0;
     };
 }
 
