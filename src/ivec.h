@@ -9,6 +9,8 @@ namespace DGShield {
     struct ivec {
         int x, y;
 
+        ivec() : x(0), y(0) {};
+
         ivec(int px, int py) : x(px), y(py) {};
 
         ivec(rl::Vector2 v) : x(v.x), y(v.y) {};

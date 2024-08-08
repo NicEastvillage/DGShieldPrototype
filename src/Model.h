@@ -1,5 +1,6 @@
 #include <vector>
 #include "ivec.h"
+#include "Generator.h"
 
 #ifndef DGSHIELDPROTOTYPE_MODEL_H
 #define DGSHIELDPROTOTYPE_MODEL_H
@@ -54,7 +55,7 @@ namespace DGShield {
             return _initial;
         }
 
-        [[nodiscard]] std::vector<state_t> successors(state_t state, action_t action) const;
+        [[nodiscard]] Utils::Generator<state_t> successors(state_t state, action_t action) const;
 
         [[nodiscard]] std::vector<state_t> successors(irect states, action_t action) const;
 

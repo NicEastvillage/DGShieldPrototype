@@ -7,7 +7,10 @@ namespace DGShield {
 
     state_t Simulator::step(DGShield::action_t action) {
         state_t current = _trace.states[_trace.states.size() - 1];
-        std::vector<state_t> destinations = _model.successors(current, action);
+        std::vector<state_t> destinations;
+        for (state_t s : _model.successors(current, action)) {
+            destinations.push_back(s);
+        }
         state_t dest = destinations[rand() % destinations.size()];
         _trace.states.push_back(dest);
         return dest;
@@ -24,7 +27,10 @@ namespace DGShield {
         if (shield.isAnyUnexplored() || shield.isAllUnsafe()) return stepRandom();
         action_t action = action_t(rand() % 3);
         while (shield.assignment[action] == UNSAFE) action = action_t(rand() % 3);
-        std::vector<state_t> destinations = _model.successors(current, action);
+        std::vector<state_t> destinations;
+        for (state_t s : _model.successors(current, action)) {
+            destinations.push_back(s);
+        }
         state_t dest = destinations[rand() % destinations.size()];
         _trace.states.push_back(dest);
         return dest;

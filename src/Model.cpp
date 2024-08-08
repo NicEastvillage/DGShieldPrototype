@@ -4,24 +4,38 @@
 #include "Model.h"
 
 namespace DGShield {
-    std::vector<state_t> Model::successors(state_t state, action_t action) const {
-        if (state.x == width - 1 || containsDanger(state)) return { state };
-        switch (action) {
-            case FORWARD:
-                // One or two steps right
-                if (state.x == width - 2) return { { state.x + 1, state.y } };
-                return { { state.x + 1, state.y }, { state.x + 2, state.y } };
-            case UP:
-                // One step right and up
-                if (state.y == height - 1) return { { state.x + 1, state.y } };
-                return { { state.x + 1, state.y + 1 } };
-            case DOWN:
-                // One step right and either one or two down
-                if (state.y == 0) return { { state.x + 1, state.y } };
-                if (state.y == 1) return { { state.x + 1, state.y - 1 } };
-                return { { state.x + 1, state.y - 1 }, { state.x + 1, state.y - 2 } };
+    Utils::Generator<state_t> Model::successors(state_t state, action_t action) const {
+        if (state.x == width - 1 || containsDanger(state)) {
+            co_yield state;
+        } else {
+            switch (action) {
+                case FORWARD:
+                    // One or two steps right
+                    if (state.x == width - 2) {
+                        co_yield state_t{ state.x + 1, state.y };
+                    } else {
+                        co_yield state_t{ state.x + 1, state.y };
+                        co_yield state_t{ state.x + 2, state.y };
+                    }
+                    break;
+                case UP:
+                    // One step right and up
+                    if (state.y == height - 1) co_yield state_t{ state.x + 1, state.y };
+                    co_yield state_t{ state.x + 1, state.y + 1 };
+                    break;
+                case DOWN:
+                    // One step right and either one or two down
+                    if (state.y == 0) {
+                        co_yield state_t{ state.x + 1, state.y };
+                    } else if (state.y == 1) {
+                        co_yield state_t{ state.x + 1, state.y - 1 };
+                    } else {
+                        co_yield state_t{ state.x + 1, state.y - 1 };
+                        co_yield state_t{ state.x + 1, state.y - 2 };
+                    }
+                    break;
+            }
         }
-        assert(false);
     }
 
     std::vector<state_t> Model::successors(irect states, action_t action) const {
