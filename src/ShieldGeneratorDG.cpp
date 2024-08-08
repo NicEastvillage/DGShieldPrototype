@@ -8,10 +8,11 @@ namespace DGShield {
         assert(level > 0);
         int midX = middleX();
         int midY = middleY();
-        child_low_low = new config_t({{partition.min.x, partition.min.y}, {midX - 1, midY - 1}}, level - 1);
-        child_low_high = new config_t({{partition.min.x, midY}, {midX - 1, partition.max.y}}, level - 1);
-        child_high_low = new config_t({{midX, partition.min.y}, {partition.max.x, midY - 1}}, level - 1);
-        child_high_high = new config_t({{midX, midY}, {partition.max.x, partition.max.y}}, level - 1);
+        children = new config_t[4];
+        children[0] = config_t({{partition.min.x, partition.min.y}, {midX - 1, midY - 1}}, level - 1);
+        children[1] = config_t({{partition.min.x, midY}, {midX - 1, partition.max.y}}, level - 1);
+        children[2] = config_t({{midX, partition.min.y}, {partition.max.x, midY - 1}}, level - 1);
+        children[3] = config_t({{midX, midY}, {partition.max.x, partition.max.y}}, level - 1);
     }
 
     void config_t::heavySplit() {
@@ -20,21 +21,23 @@ namespace DGShield {
         for (edge_t *e : dependants) {
             for (state_t t : e->targets) {
                 if (partition.contains(t)) {
-                    if (child_low_low->partition.contains(t)) child_low_low->dependants.push_back(e);
-                    else if (child_low_high->partition.contains(t)) child_low_high->dependants.push_back(e);
-                    else if (child_high_low->partition.contains(t)) child_high_low->dependants.push_back(e);
-                    else child_high_high->dependants.push_back(e);
+                    for (int i = 0; i < 4; ++i) {
+                        if (children[i].partition.contains(t)) {
+                            children[i].dependants.push_back(e);
+                            break;
+                        }
+                    }
                 }
             }
         }
         dependants.clear();
 
         // Transfer current assignment
-        std::copy(assignment, assignment + std::size(assignment), child_low_low->assignment);
-        std::copy(assignment, assignment + std::size(assignment), child_low_high->assignment);
-        std::copy(assignment, assignment + std::size(assignment), child_high_low->assignment);
-        std::copy(assignment, assignment + std::size(assignment), child_high_high->assignment);
-        std::fill(assignment, assignment + std::size(assignment), UNEXPLORED);
+        std::copy(assignment, assignment + std::size(assignment), children[0].assignment);
+        std::copy(assignment, assignment + std::size(assignment), children[1].assignment);
+        std::copy(assignment, assignment + std::size(assignment), children[2].assignment);
+        std::copy(assignment, assignment + std::size(assignment), children[3].assignment);
+        //std::fill(assignment, assignment + std::size(assignment), UNEXPLORED);
     }
 
     const config_t &config_t::findSmallestContaining(state_t state) const {
@@ -42,10 +45,10 @@ namespace DGShield {
         if (!isSplit()) return *this;
         int midX = middleX();
         int midY = middleY();
-        if (state.x < midX && state.y < midY) return child_low_low->findSmallestContaining(state);
-        if (state.x < midX && state.y >= midY) return child_low_high->findSmallestContaining(state);
-        if (state.x >= midX && state.y < midY) return child_high_low->findSmallestContaining(state);
-        return child_high_high->findSmallestContaining(state);
+        if (state.x < midX && state.y < midY) return children[0].findSmallestContaining(state);
+        if (state.x < midX && state.y >= midY) return children[1].findSmallestContaining(state);
+        if (state.x >= midX && state.y < midY) return children[2].findSmallestContaining(state);
+        return children[3].findSmallestContaining(state);
     }
 
     config_t &config_t::findSmallestContaining(state_t state) {
@@ -53,27 +56,24 @@ namespace DGShield {
         if (!isSplit()) return *this;
         int midX = middleX();
         int midY = middleY();
-        if (state.x < midX && state.y < midY) return child_low_low->findSmallestContaining(state);
-        if (state.x < midX && state.y >= midY) return child_low_high->findSmallestContaining(state);
-        if (state.x >= midX && state.y < midY) return child_high_low->findSmallestContaining(state);
-        return child_high_high->findSmallestContaining(state);
+        if (state.x < midX && state.y < midY) return children[0].findSmallestContaining(state);
+        if (state.x < midX && state.y >= midY) return children[1].findSmallestContaining(state);
+        if (state.x >= midX && state.y < midY) return children[2].findSmallestContaining(state);
+        return children[3].findSmallestContaining(state);
     }
 
     bool config_t::makeCompact() {
         if (!isSplit()) return isAllUnsafe();
 
         bool reduce = true;
-        reduce &= child_low_low->makeCompact();
-        reduce &= child_low_high->makeCompact();
-        reduce &= child_high_low->makeCompact();
-        reduce &= child_high_high->makeCompact();
+        reduce &= children[0].makeCompact();
+        reduce &= children[1].makeCompact();
+        reduce &= children[2].makeCompact();
+        reduce &= children[3].makeCompact();
 
         if (!reduce) return false;
 
-        delete child_low_low; child_low_low = nullptr;
-        delete child_low_high; child_low_high = nullptr;
-        delete child_high_low; child_high_low = nullptr;
-        delete child_high_high; child_high_high = nullptr;
+        delete[] children; children = nullptr;
 
         std::fill(assignment, assignment + std::size(assignment), UNSAFE);
         return true;
@@ -81,10 +81,10 @@ namespace DGShield {
 
     void config_t::render(int height, shield_render_mode_t rmode) const {
         if (isSplit()) {
-            child_low_low->render(height, rmode);
-            child_low_high->render(height, rmode);
-            child_high_low->render(height, rmode);
-            child_high_high->render(height, rmode);
+            children[0].render(height, rmode);
+            children[1].render(height, rmode);
+            children[2].render(height, rmode);
+            children[3].render(height, rmode);
         } else {
             rl::Color color;
             switch (rmode) {
@@ -172,10 +172,10 @@ namespace DGShield {
                         // Attempt to split for higher accuracy
                         edge->source->heavySplit();
                         // Construct edges of children
-                        explore(*edge->source->child_low_low, true);
-                        explore(*edge->source->child_low_high, true);
-                        explore(*edge->source->child_high_low, true);
-                        explore(*edge->source->child_high_high, true);
+                        explore(edge->source->children[0], true);
+                        explore(edge->source->children[1], true);
+                        explore(edge->source->children[2], true);
+                        explore(edge->source->children[3], true);
                         _stat_heavy_splits++;
                     } else {
                         // We cannot allow this action in the source configuration
@@ -231,9 +231,7 @@ namespace DGShield {
                     if (conf.isAllSafe()) {
                         continue;
                     }
-                    if (conf.isAnyUnexplored()) {
-                        explore(conf, false);
-                    }
+                    explore(conf, false);
                     edge->targets.push_back(s);
                     conf.dependants.push_back(edge);
                 }

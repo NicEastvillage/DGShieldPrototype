@@ -26,16 +26,15 @@ namespace DGShield {
 
     struct config_t {
     public:
+        explicit config_t() : partition({0, 0}, {0, 0}), level(0) {}
+
         explicit config_t(irect partition, int level) : partition(partition), level(level) {
             assert(level >= 0);
         }
 
         ~config_t() {
             if (isSplit()) {
-                delete child_low_low;
-                delete child_low_high;
-                delete child_high_low;
-                delete child_high_high;
+                delete[] children;
             }
         }
 
@@ -62,7 +61,7 @@ namespace DGShield {
         void heavySplit();
 
         [[nodiscard]] bool isSplit() const {
-            return child_low_low != nullptr;
+            return children != nullptr;
         }
 
         [[nodiscard]] bool isAllCertain() const {
@@ -121,7 +120,8 @@ namespace DGShield {
         irect partition;
         int level;
         assignment_t assignment[3] = {UNEXPLORED, UNEXPLORED, UNEXPLORED };
-        config_t *child_low_low{}, *child_low_high{}, *child_high_low{}, *child_high_high{};
+        // Order: lowlow, lowhigh, highlow, highhigh
+        config_t *children = nullptr;
         edge_t dependencies[3]{};
         std::vector<edge_t*> dependants{};
     };
@@ -132,10 +132,7 @@ namespace DGShield {
 
         void reset() {
             if (_root.isSplit()) {
-                delete _root.child_low_low;
-                delete _root.child_low_high;
-                delete _root.child_high_low;
-                delete _root.child_high_high;
+                delete[] _root.children;
             }
             _root = createRoot(_model);
             _forward_queue.clear();
