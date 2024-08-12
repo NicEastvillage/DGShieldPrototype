@@ -10,6 +10,10 @@ namespace DGShield {
         FORWARD, UP, DOWN
     };
 
+    enum incl_check_t {
+        IC_SAFE, IC_MIXED, IC_UNSAFE
+    };
+
     using state_t = ivec;
 
     class Model {
@@ -23,12 +27,12 @@ namespace DGShield {
             return false;
         }
 
-        [[nodiscard]] bool containsDanger(irect r) const {
+        [[nodiscard]] incl_check_t includesDanger(irect r) const {
             // ASSUMPTION: Must be fast
             for (irect danger : _dangers) {
-                if (danger.intersects(r)) return true;
+                if (danger.intersects(r)) return r.isSubsetOf(danger) ? IC_UNSAFE : IC_MIXED;
             }
-            return false;
+            return IC_SAFE;
         }
 
         void addDanger(irect r) {

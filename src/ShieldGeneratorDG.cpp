@@ -265,11 +265,11 @@ namespace DGShield {
         config_t* conf = &_root.findSmallestContaining(state);
         // Make sure smallest configuration does not intersect bad; split until true (if possible)
         while (true) {
-            if (_model.containsDanger(conf->partition)) {
-                if (conf->level == 0) {
-                    conf->disallowAllActions();
-                    return *conf;
-                }
+            incl_check_t d = _model.includesDanger(conf->partition);
+            if (d == IC_UNSAFE || (d == IC_MIXED && conf->level == 0)) {
+                conf->disallowAllActions();
+                return *conf;
+            } else if (d == IC_MIXED) {
                 conf->fastSplit();
                 conf = &conf->findSmallestContaining(state);
                 continue;

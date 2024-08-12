@@ -78,6 +78,10 @@ namespace DGShield {
             if (isEmpty()) return { 0, 0, 0, 0 };
             return { (float)min.x, (float)min.y, (float)(max.x - min.x + 1), (float)(max.y - min.y + 1) };
         }
+
+        [[nodiscard]] bool isSubsetOf(irect other) const {
+            return isEmpty() || (!other.isEmpty() && other.min.x <= min.x && other.max.x >= max.x && other.min.y <= min.y && other.max.y >= max.y);
+        }
     };
 }
 
